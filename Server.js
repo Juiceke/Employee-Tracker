@@ -1,6 +1,15 @@
 const inquirer = require("inquirer");
+const mysql = require("mysql2");
 
-// make array to hold employees
+// create a connection
+const Connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "DavidHunter722!",
+  database: "Tracker",
+});
+
+// make array to hold employees. Remove later.
 const employeeArr = [];
 
 //make the initial questioning
@@ -25,7 +34,9 @@ const initialQuestion = () => {
 const followUp = (answers) => {
   const answer = answers.initialQuestion;
   if (answer === "view all departments") {
+    // replace console log with future database
     console.log("display table for departments");
+    // loop the questions
     initialQuestion().then((answers) => {
       return followUp(answers);
     });
@@ -45,6 +56,10 @@ const followUp = (answers) => {
   if (answer === "add a department") {
     let selection = "department";
     addDepartment(selection)
+      .then((Answers) => {
+        addingDepartment(Answers);
+        return initialQuestion();
+      })
       .then(() => {
         return initialQuestion();
       })
@@ -55,7 +70,8 @@ const followUp = (answers) => {
   if (answer === "add a role") {
     let selection = "role";
     addRole(selection)
-      .then(() => {
+      .then((Answers) => {
+        addingRole(Answers);
         return initialQuestion();
       })
       .then((answers) => {
@@ -67,6 +83,7 @@ const followUp = (answers) => {
       .then((answers) => {
         employeeArr.push(answers.employeeFirstName);
         console.log(employeeArr);
+        AddingEmployee(answers);
         return initialQuestion();
       })
       .then((answers) => {
@@ -75,7 +92,7 @@ const followUp = (answers) => {
   }
   if (answer === "update an employee role") {
     return updateEmployee()
-      .then(() => {
+      .then((Answers) => {
         return initialQuestion();
       })
       .then((answers) => {
@@ -165,6 +182,40 @@ const updateEmployee = () => {
   ]);
 };
 
+// insert the Employee's info into the database
+function AddingEmployee(Answers) {
+  Connection.query(
+    `INSERT INTO Employee(first_name,last_name,role_id,manager_id) 
+    VALUES('${Answers.employeeFirstName}', '${Answers.employeeLastName}', 5, 7)`,
+    function (err, results, fields) {
+      console.log(err);
+    }
+  );
+}
+
+// insert the role's info into the database
+function addingRole(Answers) {
+  Connection.query(
+    `INSERT INTO Role(title,salary,department_id)
+  VALUES('${Answers.addName}', ${Answers.addSalary}, ${Answers.addDepartment})`,
+    function (err, results, fields) {
+      console.log(err);
+      console.log(results);
+    }
+  );
+}
+
+//insert the departments info into the database
+function addingDepartment(Answers) {
+  Connection.query(
+    `INSERT INTO Department(name)
+    VALUES('${Answers.add}')`,
+    function (err, results, fields) {
+      console.log(err);
+      console.log(results);
+    }
+  );
+}
 initialQuestion()
   .then((answers) => {
     return followUp(answers);
