@@ -1,5 +1,7 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
+const mysqlPromise = require("mysql2/promise");
+const cTable = require("console.table");
 
 // create a connection
 const Connection = mysql.createConnection({
@@ -7,6 +9,7 @@ const Connection = mysql.createConnection({
   user: "root",
   password: "DavidHunter722!",
   database: "Tracker",
+  waitForConnections: true,
 });
 
 // make array to hold employees. Remove later.
@@ -31,26 +34,33 @@ const initialQuestion = () => {
     },
   ]);
 };
-const followUp = (answers) => {
+
+async function followUp(answers) {
   const answer = answers.initialQuestion;
   if (answer === "view all departments") {
-    // replace console log with future database
-    console.log("display table for departments");
-    // loop the questions
-    initialQuestion().then((answers) => {
-      return followUp(answers);
+    //send database to console
+    Connection.query(`SELECT * FROM Department`, (err, results) => {
+      console.table(results);
+      //loop the questions
+      initialQuestion().then((answers) => {
+        followUp(answers);
+      });
     });
   }
   if (answer === "view all roles") {
-    console.log("display table for roles");
-    initialQuestion().then((answers) => {
-      return followUp(answers);
+    Connection.query(`SELECT * FROM Role`, (err, results) => {
+      console.table(results);
+      initialQuestion().then((answers) => {
+        followUp(answers);
+      });
     });
   }
   if (answer === "view all employees") {
-    console.log("display table for all employees");
-    initialQuestion().then((answers) => {
-      return followUp(answers);
+    Connection.query(`SELECT * FROM Employee`, (err, results) => {
+      console.table(results);
+      initialQuestion().then((answers) => {
+        followUp(answers);
+      });
     });
   }
   if (answer === "add a department") {
@@ -99,7 +109,7 @@ const followUp = (answers) => {
         return followUp(answers);
       });
   }
-};
+}
 
 // functions that will be called upon when user selects an add decision
 const addDepartment = (selection) => {
@@ -216,6 +226,7 @@ function addingDepartment(Answers) {
     }
   );
 }
+
 initialQuestion()
   .then((answers) => {
     return followUp(answers);
