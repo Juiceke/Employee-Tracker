@@ -1,2 +1,3 @@
+DROP DATABASE IF EXISTS Tracker;
 CREATE DATABASE Tracker;
-use Tracker;
+USE Tracker;

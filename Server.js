@@ -12,8 +12,15 @@ const Connection = mysql.createConnection({
   waitForConnections: true,
 });
 
-// make array to hold employees. Remove later.
+// make array to hold employees. Remove later?
 const employeeArr = [];
+
+// Connection.query(`SELECT * FROM employee`, (err, results) => {
+//   var result = results.find((obj) => {
+//     return obj.id === 6;
+//   });
+//   // console.log(result);
+// });
 
 //make the initial questioning
 const initialQuestion = () => {
@@ -29,6 +36,7 @@ const initialQuestion = () => {
         "add a role",
         "add an employee",
         "update an employee role",
+        "quit",
       ],
       name: "initialQuestion",
     },
@@ -56,7 +64,17 @@ async function followUp(answers) {
     });
   }
   if (answer === "view all employees") {
-    Connection.query(`SELECT * FROM Employee`, (err, results) => {
+    const sql = `
+    SELECT employee.id,
+           employee.first_name,
+           employee.last_name,
+           role.title,
+           role.salary,
+           CONCAT (manager.first_name, " ", manager.last_name) AS manager FROM employee
+           LEFT JOIN role ON employee.role_id = role.id
+           LEFT JOIN employee manager ON employee.manager_id = manager.id
+    `;
+    Connection.query(sql, (err, results) => {
       console.table(results);
       initialQuestion().then((answers) => {
         followUp(answers);
@@ -91,8 +109,6 @@ async function followUp(answers) {
   if (answer === "add an employee") {
     addEmployee()
       .then((answers) => {
-        employeeArr.push(answers.employeeFirstName);
-        console.log(employeeArr);
         AddingEmployee(answers);
         return initialQuestion();
       })
@@ -101,13 +117,19 @@ async function followUp(answers) {
       });
   }
   if (answer === "update an employee role") {
-    return updateEmployee()
+    updateEmployee()
+      .then((Answers) => {
+        updatingEmployee(Answers);
+      })
       .then((Answers) => {
         return initialQuestion();
       })
       .then((answers) => {
         return followUp(answers);
       });
+  }
+  if (answer === "quit") {
+    return;
   }
 }
 
@@ -168,26 +190,16 @@ const addEmployee = (selection) => {
 };
 
 const updateEmployee = () => {
-  if (employeeArr.length === 0) {
-    console.log("You have no Employee's!");
-    return initialQuestion().then((answers) => {
-      return followUp(answers);
-    });
-  }
   return inquirer.prompt([
     {
-      type: "list",
-      name: "employee",
-      // replace with employee database later
-      choices: employeeArr,
-      message: "Choose the employee you wish to update:",
+      type: "input",
+      name: "employeeUpdate",
+      message: "Enter the id of the employee you would like to update",
     },
     {
-      type: "list",
+      type: "input",
       name: "newEmployeeRole",
-      // replace with role database later
-      choices: ["test"],
-      message: "Choose the role you wish for them to have!",
+      message: "Enter the id of the role you would like to update them to!",
     },
   ]);
 };
@@ -196,9 +208,10 @@ const updateEmployee = () => {
 function AddingEmployee(Answers) {
   Connection.query(
     `INSERT INTO Employee(first_name,last_name,role_id,manager_id) 
-    VALUES('${Answers.employeeFirstName}', '${Answers.employeeLastName}', 5, 7)`,
+    VALUES('${Answers.employeeFirstName}', '${Answers.employeeLastName}', ${Answers.employeeRole}, ${Answers.employeeManager})`,
     function (err, results, fields) {
       console.log(err);
+      console.log(results);
     }
   );
 }
@@ -223,6 +236,17 @@ function addingDepartment(Answers) {
     function (err, results, fields) {
       console.log(err);
       console.log(results);
+    }
+  );
+}
+
+function updatingEmployee(Answers) {
+  console.log(Answers.newEmployeeRole);
+  Connection.query(
+    `UPDATE employee SET role_id = ${Answers.newEmployeeRole} WHERE id = ${Answers.employeeUpdate}`,
+    (err, results) => {
+      console.log(results);
+      console.log(err);
     }
   );
 }
