@@ -1,3 +1,7 @@
+DELETE FROM department;
+DELETE FROM role;
+DELETE FROM employee;
+
 INSERT INTO department (name)
 VALUES 
 ('IT'),
@@ -19,11 +23,11 @@ VALUES
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES 
-('Mark', 'Miller', 2, null),
-('Devin', 'Anderson', 1, 1),
-('Mary', 'Brown', 4, null),
-('Ashley', 'Jones', 3, 3),
+('Doug', 'Doober', 2, null),
+('Amanda', 'Williams', 1, 1),
+('David', 'Brown', 4, null),
 ('Tyler', 'Moore', 6, null),
+('Ashley', 'Jones', 3, 3),
 ('Ana', 'Sanchez', 5, 5),
 ('Lewis', 'Allen', 7, null),
 ('Katherine', 'Green', 8, 7);

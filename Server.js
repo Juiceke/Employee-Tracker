@@ -12,16 +12,6 @@ const Connection = mysql.createConnection({
   waitForConnections: true,
 });
 
-// make array to hold employees. Remove later?
-const employeeArr = [];
-
-// Connection.query(`SELECT * FROM employee`, (err, results) => {
-//   var result = results.find((obj) => {
-//     return obj.id === 6;
-//   });
-//   // console.log(result);
-// });
-
 //make the initial questioning
 const initialQuestion = () => {
   return inquirer.prompt([
@@ -43,7 +33,7 @@ const initialQuestion = () => {
   ]);
 };
 
-async function followUp(answers) {
+const followUp = (answers) => {
   const answer = answers.initialQuestion;
   if (answer === "view all departments") {
     //send database to console
@@ -86,9 +76,9 @@ async function followUp(answers) {
     addDepartment(selection)
       .then((Answers) => {
         addingDepartment(Answers);
-        return initialQuestion();
       })
       .then(() => {
+        console.log("Department added!");
         return initialQuestion();
       })
       .then((answers) => {
@@ -100,6 +90,7 @@ async function followUp(answers) {
     addRole(selection)
       .then((Answers) => {
         addingRole(Answers);
+        console.log("Role added!");
         return initialQuestion();
       })
       .then((answers) => {
@@ -110,6 +101,7 @@ async function followUp(answers) {
     addEmployee()
       .then((answers) => {
         AddingEmployee(answers);
+        console.log("Employee added!");
         return initialQuestion();
       })
       .then((answers) => {
@@ -122,6 +114,7 @@ async function followUp(answers) {
         updatingEmployee(Answers);
       })
       .then((Answers) => {
+        console.log("Employee updated!");
         return initialQuestion();
       })
       .then((answers) => {
@@ -131,7 +124,7 @@ async function followUp(answers) {
   if (answer === "quit") {
     return;
   }
-}
+};
 
 // functions that will be called upon when user selects an add decision
 const addDepartment = (selection) => {
@@ -159,7 +152,7 @@ const addRole = (selection) => {
     {
       type: "input",
       name: "addDepartment",
-      message: "Which Department will this role be in?",
+      message: "Enter the id of the department this role will be in:",
     },
   ]);
 };
@@ -179,12 +172,13 @@ const addEmployee = (selection) => {
     {
       type: "input",
       name: "employeeRole",
-      message: "What is this Employee's role?",
+      message: "Enter the id of the Role this employee will have:",
     },
     {
       type: "input",
       name: "employeeManager",
-      message: "Who is this employee's Manager?",
+      message:
+        "Enter the id of employee that will be this employee's manager: (enter null if no manager)",
     },
   ]);
 };
@@ -211,7 +205,7 @@ function AddingEmployee(Answers) {
     VALUES('${Answers.employeeFirstName}', '${Answers.employeeLastName}', ${Answers.employeeRole}, ${Answers.employeeManager})`,
     function (err, results, fields) {
       console.log(err);
-      console.log(results);
+      console.log("Employee Added!");
     }
   );
 }
@@ -223,7 +217,6 @@ function addingRole(Answers) {
   VALUES('${Answers.addName}', ${Answers.addSalary}, ${Answers.addDepartment})`,
     function (err, results, fields) {
       console.log(err);
-      console.log(results);
     }
   );
 }
@@ -235,17 +228,14 @@ function addingDepartment(Answers) {
     VALUES('${Answers.add}')`,
     function (err, results, fields) {
       console.log(err);
-      console.log(results);
     }
   );
 }
 
 function updatingEmployee(Answers) {
-  console.log(Answers.newEmployeeRole);
   Connection.query(
     `UPDATE employee SET role_id = ${Answers.newEmployeeRole} WHERE id = ${Answers.employeeUpdate}`,
     (err, results) => {
-      console.log(results);
       console.log(err);
     }
   );
